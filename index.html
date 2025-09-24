@@ -1,89 +1,95 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Souk Marocain - Outil de Produits</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<title>Souk Marocain AI Assistant</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9; }
+  button { cursor: pointer; }
+  .city-btn { background: #1e40af; color: white; padding: 8px 16px; margin: 4px; border-radius: 5px; border: none; }
+  .category-btn { display: block; width: 100%; text-align: left; padding: 8px; border-bottom: 1px solid #ccc; background: #e5e7eb; margin-bottom: 2px; border-radius: 3px; }
+  .category-btn:hover { background: #d1d5db; }
+  #answerBox { background: #fff; padding: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); margin-top: 10px; }
+  h2, h3 { margin-bottom: 10px; }
+</style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body>
 
-<!-- Header -->
-<header class="bg-blue-700 text-white p-6 text-center">
-  <h1 class="text-3xl font-bold" id="title">🔎 أداة البحث عن المنتجات المغربية</h1>
-  <select id="lang" class="mt-2 p-2 rounded" onchange="changeLang()">
-    <option value="ar">العربية</option>
-    <option value="fr">Français</option>
-  </select>
-</header>
+<h2>اختر المدينة / Choisissez la ville :</h2>
+<div id="cityButtons"></div>
 
-<!-- Search -->
-<section class="max-w-3xl mx-auto p-6">
-  <div class="flex flex-col md:flex-row gap-4 mb-6">
-    <input type="text" id="searchInput" placeholder="ابحث عن منتج..." class="flex-1 p-2 border rounded">
-    <button onclick="searchProducts()" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800" id="searchBtn">بحث</button>
-  </div>
+<div id="categoryList"></div>
 
-  <!-- Results -->
-  <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-</section>
+<div id="answerBox"></div>
 
 <script>
-// Multilingual text
-const texts = {
-  ar: {
-    title: "🔎 أداة البحث عن المنتجات المغربية",
-    placeholder: "ابحث عن منتج...",
-    button: "بحث",
-    buy: "شراء الآن",
-    loading: "جارٍ البحث..."
+// المدن والفئات
+const cities = [
+  {
+    name: "Meknès",
+    categories: ["Mosquées","Hammams","Sports","Hôtels","Sites touristiques","Souks populaires","Marchés"]
   },
-  fr: {
-    title: "🔎 Outil de Recherche de Produits Marocains",
-    placeholder: "Recherchez un produit...",
-    button: "Rechercher",
-    buy: "Acheter maintenant",
-    loading: "Recherche en cours..."
+  {
+    name: "Marrakech",
+    categories: ["Mosquées","Hammams","Sports","Hôtels","Sites touristiques","Souks populaires","Marchés"]
+  },
+  {
+    name: "Fès",
+    categories: ["Mosquées","Hammams","Sports","Hôtels","Sites touristiques","Souks populaires","Marchés"]
   }
-};
+];
 
-// Change language
-function changeLang() {
-  const lang = document.getElementById("lang").value;
-  document.getElementById("title").innerText = texts[lang].title;
-  document.getElementById("searchInput").placeholder = texts[lang].placeholder;
-  document.getElementById("searchBtn").innerText = texts[lang].button;
-  currentLang = lang;
+// إنشاء أزرار المدن
+const cityButtonsDiv = document.getElementById('cityButtons');
+cities.forEach(city => {
+  const btn = document.createElement('button');
+  btn.textContent = city.name;
+  btn.className = "city-btn";
+  btn.onclick = () => showCategories(city.name);
+  cityButtonsDiv.appendChild(btn);
+});
+
+function showCategories(cityName) {
+  const city = cities.find(c => c.name === cityName);
+  const categoryListDiv = document.getElementById('categoryList');
+  const answerBox = document.getElementById('answerBox');
+  answerBox.innerHTML = "";
+
+  categoryListDiv.innerHTML = city.categories.map(cat =>
+    `<button onclick="askAI('${cityName}','${cat}')" class="category-btn">${cat}</button>`
+  ).join("");
 }
 
-// Current language
-let currentLang = 'ar';
+// استدعاء الذكاء الاصطناعي
+async function askAI(city, category) {
+  const answerBox = document.getElementById('answerBox');
+  answerBox.innerHTML = "جاري التحميل... / Chargement...";
 
-// Search products (example static data, replace with Affiliate API)
-function searchProducts() {
-  const query = document.getElementById('searchInput').value;
-  const resultsDiv = document.getElementById('results');
-  resultsDiv.innerHTML = `<p class="text-center col-span-full">${texts[currentLang].loading}</p>`;
-
-  // Example static products (replace with API call)
-  const products = [
-    {name_ar:'بهارات مغربية', name_fr:'Épices Marocaines', price:'15$', image:'https://via.placeholder.com/150', link:'#aff1'},
-    {name_ar:'طاجين فخار', name_fr:'Tajine en terre cuite', price:'50$', image:'https://via.placeholder.com/150', link:'#aff2'},
-    {name_ar:'جلابة تقليدية', name_fr:'Djellaba Traditionnelle', price:'80$', image:'https://via.placeholder.com/150', link:'#aff3'}
-  ];
-
-  resultsDiv.innerHTML = '';
-  products.forEach(p => {
-    const name = currentLang==='ar'? p.name_ar : p.name_fr;
-    resultsDiv.innerHTML += `
-      <div class="bg-white shadow rounded p-4 flex flex-col items-center">
-        <img src="${p.image}" alt="${name}" class="mb-2 w-32 h-32 object-cover rounded">
-        <h2 class="font-bold text-lg mb-1 text-center">${name}</h2>
-        <p class="text-gray-600 mb-2">${p.price}</p>
-        <a href="${p.link}" target="_blank" class="bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-800">${texts[currentLang].buy}</a>
-      </div>
-    `;
+  // استبدل YOUR_OPENAI_API_KEY بمفتاح OpenAI الخاص بك
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer YOUR_OPENAI_API_KEY"
+    },
+    body: JSON.stringify({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content: "Tu es un assistant qui fournit des listes détaillées des lieux au Maroc selon la catégorie, avec nom, description et lien Google Maps. Réponds aussi en arabe si nécessaire."
+        },
+        {
+          role: "user",
+          content: `Fournis-moi une liste de 5 ${category} à ${city}, avec nom, courte description et lien Google Maps.`
+        }
+      ],
+      max_tokens: 600
+    })
   });
+
+  const data = await response.json();
+  answerBox.innerHTML = data.choices[0].message.content.replace(/\n/g,"<br>");
 }
 </script>
 
